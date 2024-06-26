@@ -22,11 +22,11 @@ export default function Sidebar() {
         //   icon: <User />,
         //   text: "المسؤولين",
         // },
-        // {
-        //   link: "/admin/",
-        //   icon: <Inbox />,
-        //   text: "الشكاوى",
-        // },
+        {
+          link: "/admin/complaints",
+          icon: <Inbox />,
+          text: "الشكاوى",
+        },
         {
           link: "/admin/add-category",
           icon: <CreditCard />,
