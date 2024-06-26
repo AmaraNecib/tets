@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @unique @default(autoincrement())
+  email      String    @unique
+  firstName       String?
+  lastName       String?
+  password   String
+  roleId     Int       @default(3)
+  dateBirth  DateTime?
+  gender     Int?
+  isVerified Boolean   @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  // coonect to the free plan by default
+  userPlanId Int?
+  Addresses      Address[]
+  Cart          Cart[]
+  CartItem      CartItem[]
+  favorite      Favorite[]
+  orders        Order[]
+  phoneNumbers  Phone[]
+  resetPassword ResetPassword[]
+  reviews       Reviews[]
+  verifyEmail   VerifyEmail[]
+  favoriteStore FavoriteStore[]
+  role Role @relation(fields: [roleId], references: [id])
+  complaint Complaint[]
+  // one to one relation with store
+  store Store?
+  token DeviceId[]
+}
+ model Store{
+  id Int @id @default(autoincrement())
+  username   String?   @unique
+  userId Int @unique
+  storeName String
+  phone Phone[]
+  followers Int @default(0)
+  productsCount Int @default(0)
+  storeDescription String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  user User @relation(fields: [userId], references: [id])
+  products Product[]
+  storeImages String?
+  category StoreCategory[]
+  favoriteStore FavoriteStore[]
+  orders Order[]
+  storeAddress Address[]
+  famousStore FamousStore[]
+ }
+model Phone {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  phoneNumber String
+  countryCode String?  @default("+213")
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  verified    Boolean  @default(false)
+  user        User     @relation(fields: [userId], references: [id])
+  store Store[]
+}
+
+model Address {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  address    String?
+  city      String
+  state     String
+  country   String   @default("Algeria")
+  primaryPhone String
+  secondaryPhone String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  orders    Order[]
+  store     Store[]
+}
+
+model VerifyEmail {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  verifyEmailCode String?
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+}
+
+model ResetPassword {
+  id                       Int       @id @default(autoincrement())
+  userId                   Int
+  resetPasswordCode        String?
+  resetPasswordCodeExpiry  DateTime?
+  resetPasswordToken       String?
+  resetPasswordTokenExpiry DateTime?
+  createdAt                DateTime  @default(now())
+  resetedAt                DateTime  @updatedAt
+  user                     User      @relation(fields: [userId], references: [id])
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model Product {
+  id              Int               @id @default(autoincrement())
+  name            String
+  description     Json?
+  price           Float
+  onDemand        Boolean @default(true)
+  stock           Int?    @default(0)
+  image           String[]
+  storeId         Int
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  CartItem        CartItem[]
+  favorite        Favorite[]
+  OrderItem       OrderItem[]
+  store           Store              @relation(fields: [storeId], references: [id])
+  productCategoryId Int
+  productCategory SubCategory @relation(fields: [productCategoryId], references: [id])
+  reviews         Reviews[]
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  cartId    Int
+  storeId   Int
+  addressId  Int
+  statusId  Int
+  user      User        @relation(fields: [userId], references: [id])
+  address    Address      @relation(fields: [addressId], references: [id])
+  status    Status      @relation(fields: [statusId], references: [id])
+  OrderItem OrderItem[]
+  cart     Cart        @relation(fields: [cartId], references: [id])
+  store    Store       @relation(fields: [storeId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime?    @updatedAt
+  deletedAt DateTime?
+}
+
+model OrderItem {
+  id        Int       @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  price     Float
+  quantity  Int
+  total     Float
+  discount  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?  @updatedAt
+  deletedAt DateTime?
+  product   Product   @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  isOrdered Boolean    @default(false)
+  userId    Int
+  user      User       @relation(fields: [userId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime?   @updatedAt
+  CartItem  CartItem[]
+  order     Order[]
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  userId    Int
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  cart      Cart     @relation(fields: [cartId], references: [id])
+}
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  userId    Int
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+model Category {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  subCategory SubCategory[]
+  store       StoreCategory[]
+}
+model StoreCategory {
+  id Int @id @default(autoincrement())
+  storeId Int
+  categoryId Int
+  store Store @relation(fields: [storeId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+}
+model SubCategory {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  categoryId      Int
+  Product Product[]
+  category        Category          @relation(fields: [categoryId], references: [id])
+}
+
+// model ProductCategory {
+//   id            Int         @id @default(autoincrement())
+//   productId     Int
+//   subcategoryId Int
+//   product       Product     @relation(fields: [productId], references: [id])
+//   subcategory   SubCategory @relation(fields: [subcategoryId], references: [id])
+// }
+
+model Reviews {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  productId Int
+  rating    Int
+  comment   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+  product   Product   @relation(fields: [productId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model Status{
+  id Int  @id @default(autoincrement())
+  name String
+  order Order[]
+}
+
+
+
+model FavoriteStore{
+  id Int @id @default(autoincrement())
+  userId Int
+  storeId Int
+  user User @relation(fields: [userId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+
+model UserPlan{
+  id Int @id @default(autoincrement())
+  name String
+  description String
+  price Float
+  maxAddresses Int
+  
+  createdAt DateTime @default(now())
+  // UserPlan userPlan @relation(fields: [userPlanId], references: [id])
+  updatedAt DateTime? @updatedAt
+}
+
+model DeviceId {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Complaint {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      Int
+  message   String
+  fixed     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  complaintType ComplaintType @relation(fields: [type], references: [id])
+}
+
+model ComplaintType {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  complaint Complaint[]
+}
+
+
+
+
+model FamousStore {
+  id        Int      @id @default(autoincrement())
+  storeId   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  store     Store    @relation(fields: [storeId], references: [id])
+}
+
+model websiteStats {
+  id        Int      @id @default(autoincrement())
+  stores Int
+  users Int
+  products Int
+  orders Int
+}
