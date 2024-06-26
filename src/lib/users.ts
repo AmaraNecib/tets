@@ -1,7 +1,7 @@
 "use server"
 
 
-export const deleteUser =async (userId) =>{
+export const deleteUser =async (userId: any) =>{
 
   const data= await fetch(`http://localhost:3000/api/delete-user`,{
     method: 'POST',
