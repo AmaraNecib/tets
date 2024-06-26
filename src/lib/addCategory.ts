@@ -1,5 +1,6 @@
 "use server"
-export const addCategory = async (name) => {
+
+export const addCategory = async (name : String) => {
     const response = await fetch(`http://localhost:3000/api/add-category`, {
       method: 'POST',
       headers: {
